@@ -3,57 +3,6 @@
 
 //***************** STUFF FOR AUDIO ****************************
 
-//***** ofBaseSoundStream.h
-
-//class ofBaseSoundInput;
-//class ofBaseSoundOutput;
-//class ofSoundBuffer;
-//
-//class ofSoundDevice {
-//public:
-//    
-//    ofSoundDevice();
-//    
-//    friend std::ostream& operator << (std::ostream& os, const ofSoundDevice& dev);
-//    friend std::ostream& operator << (std::ostream& os, const std::vector<ofSoundDevice>& devs);
-//    
-//    std::string name;
-//    
-//    unsigned int deviceID;
-//    unsigned int inputChannels;
-//    unsigned int outputChannels;
-//    bool isDefaultInput;
-//    bool isDefaultOutput;
-//
-//    std::vector<unsigned int> sampleRates;
-//};
-
-class myBaseSoundStream{
-public:
-    virtual ~myBaseSoundStream(){}
-    
-    virtual void setDeviceID(int deviceID) = 0;
-    virtual bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers)=0;
-    virtual bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers)=0;
-    virtual void setInput(ofBaseSoundInput * soundInput) = 0;
-    virtual void setOutput(ofBaseSoundOutput * soundOutput) = 0;
-    
-    virtual std::vector<ofSoundDevice> getDeviceList() const = 0;
-    virtual void printDeviceList() const;
-    
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void close() = 0;
-    
-    virtual long unsigned long getTickCount() const = 0;
-    virtual int getNumInputChannels() const = 0;
-    virtual int getNumOutputChannels() const = 0;
-    virtual int getSampleRate() const = 0;
-    virtual int getBufferSize() const = 0;
-    virtual int getDeviceID() const = 0;
-};
-
-
 //***** ofBaseSoundStream.mm
 
 #include "ofSoundBuffer.h"
@@ -63,22 +12,6 @@ void myBaseSoundStream::printDeviceList() const {
     ofLogNotice("myBaseSoundStream::printDeviceList") << std::endl << getDeviceList();
 }
 
-
-//***** ofxiOSSoundStreamDelegate.h
-
-#import "SoundStream.h"
-
-//class ofBaseSoundInput;
-//class ofBaseSoundOutput;
-
-@interface myiosSoundStreamDelegate : NSObject <SoundStreamDelegate>
-
-- (id)initWithSoundInputApp:(ofBaseSoundInput *)app;
-- (id)initWithSoundOutputApp:(ofBaseSoundOutput *)app;
-- (void)setInput:(ofBaseSoundInput *)input;
-- (void)setOutput:(ofBaseSoundOutput *)output;
-
-@end
 
 
 //***** ofxiOSSoundStreamDelegate.mm
@@ -186,56 +119,6 @@ void myBaseSoundStream::printDeviceList() const {
 @end
 
 
-//***** ofxiOSSoundStream.h
-
-class myiosSoundStream : public myBaseSoundStream {
-    
-public:
-    myiosSoundStream();
-    ~myiosSoundStream();
-    
-    /// these are not implemented on iOS
-    std::vector<ofSoundDevice> getDeviceList() const;
-    void setDeviceID(int deviceID);
-    
-    void setInput(ofBaseSoundInput * soundInput);
-    void setOutput(ofBaseSoundOutput * soundOutput);
-    ofBaseSoundInput * getInput();
-    ofBaseSoundOutput * getOutput();
-    
-    /// currently, the number of buffers is always 1 on iOS and setting nBuffers has no effect
-    /// the max buffersize is 4096
-    bool setup(int numOfOutChannels, int numOfInChannels, int sampleRate, int bufferSize, int numOfBuffers);
-    bool setup(ofBaseApp * app, int numOfOutChannels, int numOfInChannels, int sampleRate, int bufferSize, int numOfBuffers);
-    
-    void start();
-    void stop();
-    void close();
-    
-    // not implemented on iOS, always returns 0
-    long unsigned long getTickCount() const;
-    
-    int getNumInputChannels() const;
-    int getNumOutputChannels() const;
-    int getSampleRate() const;
-    int getBufferSize() const;
-    int getDeviceID() const;
-    
-    static bool setMixWithOtherApps(bool bMix);
-    
-private:
-    ofBaseSoundInput * soundInputPtr;
-    ofBaseSoundOutput * soundOutputPtr;
-    
-    void * soundInputStream;
-    void * soundOutputStream;
-    
-    int numOfInChannels;
-    int numOfOutChannels;
-    int sampleRate;
-    int bufferSize;
-    int numOfBuffers;
-};
 
 //***** ofxiOSSoundStream.mm
 
@@ -452,54 +335,6 @@ bool myiosSoundStream::setMixWithOtherApps(bool bMix){
     return success;
 }
 
-
-
-//***** ofSoundStream.h
-
-//#include "ofBaseSoundStream.h"
-
-//For iOS...
-//#include "ofxiOSSoundStream.h"
-#define MY_SOUND_STREAM_TYPE myiosSoundStream
-
-class mySoundStream{
-public:
-    mySoundStream();
-    
-    void setSoundStream(shared_ptr<myBaseSoundStream> soundStreamPtr);
-    shared_ptr<myBaseSoundStream> getSoundStream();
-    
-    void printDeviceList() const;
-    std::vector<ofSoundDevice> getDeviceList() const;
-    std::vector<ofSoundDevice> getMatchingDevices(const std::string& name, unsigned int inChannels = UINT_MAX, unsigned int outChannels = UINT_MAX) const;
-    
-    void setDeviceID(int deviceID);
-    void setDevice(const ofSoundDevice& device);
-    
-    bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
-    bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
-    
-    void setInput(ofBaseSoundInput * soundInput);
-    void setInput(ofBaseSoundInput &soundInput);
-    void setOutput(ofBaseSoundOutput * soundOutput);
-    void setOutput(ofBaseSoundOutput &soundOutput);
-    
-    void start();
-    void stop();
-    void close();
-    
-    long unsigned long getTickCount() const;
-    int getNumInputChannels() const;
-    int getNumOutputChannels() const;
-    int getSampleRate() const;
-    int getBufferSize() const;
-    
-    OF_DEPRECATED_MSG("Use printDeviceList instead", std::vector<ofSoundDevice> listDevices() const);
-    
-protected:
-    shared_ptr<myBaseSoundStream> soundStream;
-    
-};
 
 
 //***** ofSoundStream.cpp
