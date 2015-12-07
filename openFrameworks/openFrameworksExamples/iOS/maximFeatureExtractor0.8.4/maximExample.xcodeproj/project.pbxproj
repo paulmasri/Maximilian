@@ -18,8 +18,6 @@
 		0013FA0A1B024DBD000087BF /* IpEndpointName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9DC1B024DBD000087BF /* IpEndpointName.cpp */; };
 		0013FA0B1B024DBD000087BF /* NetworkingUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9E11B024DBD000087BF /* NetworkingUtils.cpp */; };
 		0013FA0C1B024DBD000087BF /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9E21B024DBD000087BF /* UdpSocket.cpp */; };
-		0013FA0D1B024DBD000087BF /* NetworkingUtilsWin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9E61B024DBD000087BF /* NetworkingUtilsWin.cpp */; };
-		0013FA0E1B024DBD000087BF /* UdpSocketWin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9E71B024DBD000087BF /* UdpSocketWin.cpp */; };
 		0013FA0F1B024DBD000087BF /* OscOutboundPacketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9EC1B024DBD000087BF /* OscOutboundPacketStream.cpp */; };
 		0013FA101B024DBD000087BF /* OscPrintReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9EF1B024DBD000087BF /* OscPrintReceivedElements.cpp */; };
 		0013FA111B024DBD000087BF /* OscReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0013F9F11B024DBD000087BF /* OscReceivedElements.cpp */; };
@@ -600,7 +598,6 @@
 				0013FA121B024DBD000087BF /* OscTypes.cpp in Sources */,
 				0013FA0B1B024DBD000087BF /* NetworkingUtils.cpp in Sources */,
 				0013FA051B024DBD000087BF /* ofxLabel.cpp in Sources */,
-				0013FA0D1B024DBD000087BF /* NetworkingUtilsWin.cpp in Sources */,
 				CB3C4C061B0DE8D5001294FD /* maxiBark.cpp in Sources */,
 				CB3C4C071B0DE8D5001294FD /* maxiFFT.cpp in Sources */,
 				0013FA0F1B024DBD000087BF /* OscOutboundPacketStream.cpp in Sources */,
@@ -626,7 +623,6 @@
 				0013FA0A1B024DBD000087BF /* IpEndpointName.cpp in Sources */,
 				E4D8936F11527B74007E1F53 /* ofApp.mm in Sources */,
 				CB3C4C081B0DE8D5001294FD /* maxiGrains.cpp in Sources */,
-				0013FA0E1B024DBD000087BF /* UdpSocketWin.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -679,12 +675,14 @@
 			baseConfigurationReference = E41D3ED613B38FB500A75A5D /* Project.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				COMPRESS_PNG_FILES = NO;
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
@@ -698,11 +696,12 @@
 					src,
 					"\"$(SRCROOT)/../../../addons/ofxOsc/libs/oscpack/src\"",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				ONLY_ACTIVE_ARCH = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				ONLY_ACTIVE_ARCH = YES;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "$(ARCHS_STANDARD)";
 				WARNING_LDFLAGS = "-no_arch_warnings";
 			};
 			name = Debug;
@@ -712,14 +711,16 @@
 			baseConfigurationReference = E41D3ED613B38FB500A75A5D /* Project.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				COMPRESS_PNG_FILES = NO;
-				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_THUMB_SUPPORT = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -729,10 +730,11 @@
 					src,
 					"\"$(SRCROOT)/../../../addons/ofxOsc/libs/oscpack/src\"",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "$(ARCHS_STANDARD)";
 				WARNING_LDFLAGS = "-no_arch_warnings";
 			};
 			name = Release;
