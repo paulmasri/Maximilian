@@ -3,13 +3,403 @@
 
 //***************** STUFF FOR AUDIO ****************************
 
+//***** ofxiOSSoundStreamDelegate.h
+
+#import "SoundStream.h"
+
+class ofBaseSoundInput;
+class ofBaseSoundOutput;
+
+@interface myiosSoundStreamDelegate : NSObject <SoundStreamDelegate>
+
+- (id)initWithSoundInputApp:(ofBaseSoundInput *)app;
+- (id)initWithSoundOutputApp:(ofBaseSoundOutput *)app;
+- (void)setInput:(ofBaseSoundInput *)input;
+- (void)setOutput:(ofBaseSoundOutput *)output;
+
+@end
+
+
+//***** ofxiOSSoundStreamDelegate.mm
+
+#include "ofBaseTypes.h"
+#include "ofSoundBuffer.h"
+
+@interface myiosSoundStreamDelegate() {
+    ofBaseSoundInput * soundInputApp;
+    ofBaseSoundOutput * soundOutputApp;
+    std::shared_ptr<ofSoundBuffer> inputBuffer;
+    std::shared_ptr<ofSoundBuffer> outputBuffer;
+    unsigned long long tickCount;
+}
+
+@end
+
+@implementation myiosSoundStreamDelegate
+
+- (id)init {
+    self = [super init];
+    if(self) {
+        soundInputApp = NULL;
+        soundOutputApp = NULL;
+        inputBuffer = std::shared_ptr<ofSoundBuffer>(new ofSoundBuffer);
+        outputBuffer = std::shared_ptr<ofSoundBuffer>(new ofSoundBuffer);
+        tickCount = 0;
+    }
+    return self;
+}
+
+- (void)dealloc {
+    soundInputApp = NULL;
+    soundOutputApp = NULL;
+    [super dealloc];
+}
+
+- (id)initWithSoundInputApp:(ofBaseSoundInput *)app {
+    self = [self init];
+    if(self) {
+        soundInputApp = app;
+    }
+    return self;
+}
+
+- (id)initWithSoundOutputApp:(ofBaseSoundOutput *)app {
+    self = [self init];
+    if(self) {
+        soundOutputApp = app;
+    }
+    return self;
+}
+
+- (void)setInput:(ofBaseSoundInput *)input{
+    soundInputApp = input;
+}
+- (void)setOutput:(ofBaseSoundOutput *)output{
+    soundOutputApp = output;
+}
+
+- (void)soundStreamRequested:(id)sender
+                      output:(float *)output
+                  bufferSize:(NSInteger)bufferSize
+               numOfChannels:(NSInteger)numOfChannels {
+    if(soundOutputApp) {
+        outputBuffer->setNumChannels(numOfChannels);
+        outputBuffer->resize(bufferSize*numOfChannels);
+        outputBuffer->setTickCount(tickCount);
+        soundOutputApp->audioOut(*outputBuffer);
+        outputBuffer->copyTo(output, bufferSize, numOfChannels, 0);
+        tickCount++;
+    }
+}
+
+- (void)soundStreamReceived:(id)sender
+                      input:(float *)input
+                 bufferSize:(NSInteger)bufferSize
+              numOfChannels:(NSInteger)numOfChannels {
+    if(soundInputApp) {
+        inputBuffer->copyFrom(input, bufferSize, numOfChannels, inputBuffer->getSampleRate());
+        inputBuffer->setTickCount(tickCount);
+        soundInputApp->audioIn(*inputBuffer);
+    }
+}
+
+- (void)soundStreamBeginInterruption:(id)sender {
+    NSString * streamType = [[sender class] description];
+    NSString * errorMessage = [NSString stringWithFormat:@"%@ :: Begin Interruption", streamType];
+    ofLogVerbose("myiosSoundStreamDelegate") << [errorMessage UTF8String];
+}
+
+- (void)soundStreamEndInterruption:(id)sender {
+    NSString * streamType = [[sender class] description];
+    NSString * errorMessage = [NSString stringWithFormat:@"%@ :: End Interruption", streamType];
+    ofLogVerbose("myiosSoundStreamDelegate") << [errorMessage UTF8String];
+}
+
+- (void)soundStreamError:(id)sender
+                   error:(NSString *)error {
+    NSString * streamType = [[sender class] description];
+    NSString * errorMessage = [NSString stringWithFormat:@"%@ :: %@", streamType, error];
+    ofLogVerbose("myiosSoundStreamDelegate") << [errorMessage UTF8String];
+}
+
+@end
+
+
+//***** ofxiOSSoundStream.h
+
+class myiosSoundStream : public ofBaseSoundStream {
+    
+public:
+    myiosSoundStream();
+    ~myiosSoundStream();
+    
+    /// these are not implemented on iOS
+    std::vector<ofSoundDevice> getDeviceList() const;
+    void setDeviceID(int deviceID);
+    
+    void setInput(ofBaseSoundInput * soundInput);
+    void setOutput(ofBaseSoundOutput * soundOutput);
+    ofBaseSoundInput * getInput();
+    ofBaseSoundOutput * getOutput();
+    
+    /// currently, the number of buffers is always 1 on iOS and setting nBuffers has no effect
+    /// the max buffersize is 4096
+    bool setup(int numOfOutChannels, int numOfInChannels, int sampleRate, int bufferSize, int numOfBuffers);
+    bool setup(ofBaseApp * app, int numOfOutChannels, int numOfInChannels, int sampleRate, int bufferSize, int numOfBuffers);
+    
+    void start();
+    void stop();
+    void close();
+    
+    // not implemented on iOS, always returns 0
+    long unsigned long getTickCount() const;
+    
+    int getNumInputChannels() const;
+    int getNumOutputChannels() const;
+    int getSampleRate() const;
+    int getBufferSize() const;
+    int getDeviceID() const;
+    
+    static bool setMixWithOtherApps(bool bMix);
+    
+private:
+    ofBaseSoundInput * soundInputPtr;
+    ofBaseSoundOutput * soundOutputPtr;
+    
+    void * soundInputStream;
+    void * soundOutputStream;
+    
+    int numOfInChannels;
+    int numOfOutChannels;
+    int sampleRate;
+    int bufferSize;
+    int numOfBuffers;
+};
+
+//***** ofxiOSSoundStream.mm
+
+//#include "ofxiOSSoundStream.h"
+#include "ofxiOSSoundStreamDelegate.h"
+#include "ofSoundStream.h"
+#include "ofBaseApp.h"
+
+#import "SoundInputStream.h"
+#import "SoundOutputStream.h"
+#import <AVFoundation/AVFoundation.h>
+
+//------------------------------------------------------------------------------
+myiosSoundStream::myiosSoundStream() {
+    soundInputStream = NULL;
+    soundOutputStream = NULL;
+    
+    soundInputPtr = NULL;
+    soundOutputPtr = NULL;
+    
+    numOfInChannels = 0;
+    numOfOutChannels = 0;
+    sampleRate = 0;
+    bufferSize = 0;
+    numOfBuffers = 0;
+}
+
+//------------------------------------------------------------------------------
+myiosSoundStream::~myiosSoundStream() {
+    close();
+}
+
+//------------------------------------------------------------------------------
+vector<ofSoundDevice> myiosSoundStream::getDeviceList()  const{
+    ofLogWarning("myiosSoundStream") << "getDeviceList() isn't implemented on iOS";
+    return vector<ofSoundDevice>();
+}
+
+//------------------------------------------------------------------------------
+void myiosSoundStream::setDeviceID(int _deviceID) {
+    //
+}
+
+//------------------------------------------------------------------------------
+int myiosSoundStream::getDeviceID()  const{
+    return 0;
+}
+
+//------------------------------------------------------------------------------
+void myiosSoundStream::setInput(ofBaseSoundInput * soundInput) {
+    soundInputPtr = soundInput;
+    [(myiosSoundStreamDelegate *)[(id)soundInputStream delegate] setInput:soundInputPtr];
+}
+
+//------------------------------------------------------------------------------
+void myiosSoundStream::setOutput(ofBaseSoundOutput * soundOutput) {
+    soundOutputPtr = soundOutput;
+    [(myiosSoundStreamDelegate *)[(id)soundOutputStream delegate] setOutput:soundOutputPtr];
+}
+
+//------------------------------------------------------------------------------
+ofBaseSoundInput * myiosSoundStream::getInput(){
+    return soundInputPtr;
+}
+
+//------------------------------------------------------------------------------
+ofBaseSoundOutput * myiosSoundStream::getOutput(){
+    return soundOutputPtr;
+}
+
+//------------------------------------------------------------------------------
+bool myiosSoundStream::setup(int numOfOutChannels, int numOfInChannels, int sampleRate, int bufferSize, int numOfBuffers) {
+    close();
+    
+    this->numOfOutChannels = numOfOutChannels;
+    this->numOfInChannels = numOfInChannels;
+    this->sampleRate = sampleRate;
+    this->bufferSize = bufferSize;
+    this->numOfBuffers = numOfBuffers;
+    
+    if(numOfInChannels > 0) {
+        soundInputStream = [[SoundInputStream alloc] initWithNumOfChannels:numOfInChannels
+                                                            withSampleRate:sampleRate
+                                                            withBufferSize:bufferSize];
+        myiosSoundStreamDelegate * delegate = [[myiosSoundStreamDelegate alloc] initWithSoundInputApp:soundInputPtr];
+        ((SoundInputStream *)soundInputStream).delegate = delegate;
+        [(SoundInputStream *)soundInputStream start];
+    }
+    
+    if(numOfOutChannels > 0) {
+        soundOutputStream = [[SoundOutputStream alloc] initWithNumOfChannels:numOfOutChannels
+                                                              withSampleRate:sampleRate
+                                                              withBufferSize:bufferSize];
+        myiosSoundStreamDelegate * delegate = [[myiosSoundStreamDelegate alloc] initWithSoundOutputApp:soundOutputPtr];
+        ((SoundInputStream *)soundOutputStream).delegate = delegate;
+        [(SoundInputStream *)soundOutputStream start];
+    }
+    
+    bool bOk = (soundInputStream != NULL) || (soundOutputStream != NULL);
+    return bOk;
+}
+
+//------------------------------------------------------------------------------
+bool myiosSoundStream::setup(ofBaseApp * app, int numOfOutChannels, int numOfInChannels, int sampleRate, int bufferSize, int numOfBuffers){
+    setInput(app);
+    setOutput(app);
+    bool bOk = setup(numOfOutChannels, numOfInChannels, sampleRate, bufferSize, numOfBuffers);
+    return bOk;
+}
+
+//------------------------------------------------------------------------------
+void myiosSoundStream::start(){
+    if(soundInputStream != NULL) {
+        [(SoundInputStream *)soundInputStream start];
+    }
+    
+    if(soundOutputStream != NULL) {
+        [(SoundOutputStream *)soundOutputStream start];
+    }
+}
+
+//------------------------------------------------------------------------------
+void myiosSoundStream::stop(){
+    if(soundInputStream != NULL) {
+        [(SoundInputStream *)soundInputStream stop];
+    }
+    
+    if(soundOutputStream != NULL) {
+        [(SoundOutputStream *)soundOutputStream stop];
+    }
+}
+
+//------------------------------------------------------------------------------
+void myiosSoundStream::close(){
+    if(soundInputStream != NULL) {
+        [((SoundInputStream *)soundInputStream).delegate release];
+        [(SoundInputStream *)soundInputStream setDelegate:nil];
+        [(SoundInputStream *)soundInputStream stop];
+        [(SoundInputStream *)soundInputStream release];
+        soundInputStream = NULL;
+    }
+    
+    if(soundOutputStream != NULL) {
+        [((SoundOutputStream *)soundInputStream).delegate release];
+        [(SoundOutputStream *)soundInputStream setDelegate:nil];
+        [(SoundOutputStream *)soundOutputStream stop];
+        [(SoundOutputStream *)soundOutputStream release];
+        soundOutputStream = NULL;
+    }
+    
+    numOfInChannels = 0;
+    numOfOutChannels = 0;
+    sampleRate = 0;
+    bufferSize = 0;
+    numOfBuffers = 0;
+}
+
+//------------------------------------------------------------------------------
+long unsigned long myiosSoundStream::getTickCount() const{
+    return 0;
+}
+
+//------------------------------------------------------------------------------
+int myiosSoundStream::getNumOutputChannels() const{
+    return numOfOutChannels;
+}
+
+//------------------------------------------------------------------------------
+int myiosSoundStream::getNumInputChannels() const{
+    return numOfInChannels;
+}
+
+//------------------------------------------------------------------------------
+int myiosSoundStream::getSampleRate() const{
+    return sampleRate;
+}
+
+//------------------------------------------------------------------------------
+int myiosSoundStream::getBufferSize() const{
+    return bufferSize;
+}
+
+//------------------------------------------------------------------------------
+bool myiosSoundStream::setMixWithOtherApps(bool bMix){
+    AVAudioSession * audioSession = [AVAudioSession sharedInstance];
+    bool success = false;
+    
+#ifdef __IPHONE_6_0
+    if(bMix) {
+        if([audioSession respondsToSelector:@selector(setCategory:withOptions:error:)]) {
+            if([audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
+                             withOptions:AVAudioSessionCategoryOptionMixWithOthers
+                                   error:nil]) {
+                success = true;
+            }
+        }
+    } else {
+#endif
+        
+        // this is the default category + options setup
+        // Note: using a sound input stream will set the category to PlayAndRecord
+        if([audioSession setCategory:AVAudioSessionCategorySoloAmbient error:nil]) {
+            success = true;
+        }
+        
+#ifdef __IPHONE_6_0
+    }
+#endif
+    
+    if(!success) {
+        ofLogError("myiosSoundStream") << "setMixWithOtherApps(): couldn't set app audio session category";
+    }
+    
+    return success;
+}
+
+
+
 //***** ofSoundStream.h
 
 #include "ofBaseSoundStream.h"
 
 //For iOS...
-#include "ofxiOSSoundStream.h"
-#define OF_SOUND_STREAM_TYPE ofxiOSSoundStream
+//#include "ofxiOSSoundStream.h"
+#define MY_SOUND_STREAM_TYPE myiosSoundStream
 
 class XXofSoundStream{
 public:
@@ -102,8 +492,8 @@ vector<ofSoundDevice> ofSoundStreamListDevices(){
 
 //------------------------------------------------------------
 XXofSoundStream::XXofSoundStream(){
-#ifdef OF_SOUND_STREAM_TYPE
-    setSoundStream( shared_ptr<OF_SOUND_STREAM_TYPE>(new OF_SOUND_STREAM_TYPE) );
+#ifdef MY_SOUND_STREAM_TYPE
+    setSoundStream( shared_ptr<MY_SOUND_STREAM_TYPE>(new MY_SOUND_STREAM_TYPE) );
 #endif
 }
 
