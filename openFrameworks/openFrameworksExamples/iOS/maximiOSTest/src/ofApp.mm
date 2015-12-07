@@ -1,7 +1,306 @@
 #include "ofApp.h"
 #include "ofxMaxim.h"
 
+//***************** STUFF FOR AUDIO ****************************
 
+//***** ofSoundStream.h
+
+#include "ofBaseSoundStream.h"
+
+//For iOS...
+#include "ofxiOSSoundStream.h"
+#define OF_SOUND_STREAM_TYPE ofxiOSSoundStream
+
+class XXofSoundStream{
+public:
+    XXofSoundStream();
+    
+    void setSoundStream(shared_ptr<ofBaseSoundStream> soundStreamPtr);
+    shared_ptr<ofBaseSoundStream> getSoundStream();
+    
+    void printDeviceList() const;
+    std::vector<ofSoundDevice> getDeviceList() const;
+    std::vector<ofSoundDevice> getMatchingDevices(const std::string& name, unsigned int inChannels = UINT_MAX, unsigned int outChannels = UINT_MAX) const;
+    
+    void setDeviceID(int deviceID);
+    void setDevice(const ofSoundDevice& device);
+    
+    bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
+    bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
+    
+    void setInput(ofBaseSoundInput * soundInput);
+    void setInput(ofBaseSoundInput &soundInput);
+    void setOutput(ofBaseSoundOutput * soundOutput);
+    void setOutput(ofBaseSoundOutput &soundOutput);
+    
+    void start();
+    void stop();
+    void close();
+    
+    long unsigned long getTickCount() const;
+    int getNumInputChannels() const;
+    int getNumOutputChannels() const;
+    int getSampleRate() const;
+    int getBufferSize() const;
+    
+    OF_DEPRECATED_MSG("Use printDeviceList instead", std::vector<ofSoundDevice> listDevices() const);
+    
+protected:
+    shared_ptr<ofBaseSoundStream> soundStream;
+    
+};
+
+
+//***** ofSoundStream.cpp
+
+//#include "ofSoundStream.h"
+#include "ofAppRunner.h"
+
+namespace{
+    XXofSoundStream systemSoundStream;
+}
+
+//------------------------------------------------------------
+void ofSoundStreamSetup(int nOutputChannels, int nInputChannels, ofBaseApp * appPtr){
+    if( appPtr == nullptr ){
+        appPtr = ofGetAppPtr();
+    }
+    ofSoundStreamSetup(nOutputChannels, nInputChannels, appPtr, 44100, 256, 4);
+}
+
+//------------------------------------------------------------
+void ofSoundStreamSetup(int nOutputChannels, int nInputChannels, int sampleRate, int bufferSize, int nBuffers){
+    ofSoundStreamSetup(nOutputChannels, nInputChannels, ofGetAppPtr(), sampleRate, bufferSize, nBuffers);
+}
+
+//------------------------------------------------------------
+void ofSoundStreamSetup(int nOutputChannels, int nInputChannels, ofBaseApp * appPtr, int sampleRate, int bufferSize, int nBuffers){
+    systemSoundStream.setup(appPtr, nOutputChannels, nInputChannels, sampleRate, bufferSize, nBuffers);
+}
+
+//------------------------------------------------------------
+void ofSoundStreamStop(){
+    systemSoundStream.stop();
+}
+
+//------------------------------------------------------------
+void ofSoundStreamStart(){
+    systemSoundStream.start();
+}
+
+//------------------------------------------------------------
+void ofSoundStreamClose(){
+    systemSoundStream.close();
+}
+
+//------------------------------------------------------------
+vector<ofSoundDevice> ofSoundStreamListDevices(){
+    vector<ofSoundDevice> deviceList = systemSoundStream.getDeviceList();
+    ofLogNotice("ofSoundStreamListDevices") << std::endl << deviceList;
+    return deviceList;
+}
+
+//------------------------------------------------------------
+XXofSoundStream::XXofSoundStream(){
+#ifdef OF_SOUND_STREAM_TYPE
+    setSoundStream( shared_ptr<OF_SOUND_STREAM_TYPE>(new OF_SOUND_STREAM_TYPE) );
+#endif
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setSoundStream(shared_ptr<ofBaseSoundStream> soundStreamPtr){
+    soundStream = soundStreamPtr;
+}
+
+//------------------------------------------------------------
+shared_ptr<ofBaseSoundStream> XXofSoundStream::getSoundStream(){
+    return soundStream;
+}
+
+//------------------------------------------------------------
+vector<ofSoundDevice> XXofSoundStream::getDeviceList() const{
+    if( soundStream ){
+        return soundStream->getDeviceList();
+    } else {
+        return vector<ofSoundDevice>();
+    }
+}
+
+//------------------------------------------------------------
+vector<ofSoundDevice> XXofSoundStream::listDevices() const{
+    vector<ofSoundDevice> deviceList = getDeviceList();
+    ofLogNotice("XXofSoundStream::listDevices") << std::endl << deviceList;
+    return deviceList;
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::printDeviceList()  const{
+    if( soundStream ) {
+        soundStream->printDeviceList();
+    }
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setDeviceID(int deviceID){
+    if( soundStream ){
+        soundStream->setDeviceID(deviceID);
+    }
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setDevice(const ofSoundDevice &device) {
+    setDeviceID(device.deviceID);
+}
+
+//------------------------------------------------------------
+bool XXofSoundStream::setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers){
+    if( soundStream ){
+        return soundStream->setup(app, outChannels, inChannels, sampleRate, bufferSize, nBuffers);
+    }
+    return false;
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setInput(ofBaseSoundInput * soundInput){
+    if( soundStream ){
+        soundStream->setInput(soundInput);
+    }
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setInput(ofBaseSoundInput &soundInput){
+    setInput(&soundInput);
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setOutput(ofBaseSoundOutput * soundOutput){
+    if( soundStream ){
+        soundStream->setOutput(soundOutput);
+    }
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::setOutput(ofBaseSoundOutput &soundOutput){
+    setOutput(&soundOutput);
+}
+
+//------------------------------------------------------------
+bool XXofSoundStream::setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers){
+    if( soundStream ){
+        return soundStream->setup(outChannels, inChannels, sampleRate, bufferSize, nBuffers);
+    }
+    return false;
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::start(){
+    if( soundStream ){
+        soundStream->start();
+    }
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::stop(){
+    if( soundStream ){
+        soundStream->stop();
+    }
+}
+
+//------------------------------------------------------------
+void XXofSoundStream::close(){
+    if( soundStream ){
+        soundStream->close();
+    }
+}
+
+//------------------------------------------------------------
+long unsigned long XXofSoundStream::getTickCount() const{
+    if( soundStream ){
+        return soundStream->getTickCount();
+    }
+    return 0;
+}
+
+//------------------------------------------------------------
+int XXofSoundStream::getNumInputChannels() const{
+    if( soundStream ){
+        return soundStream->getNumInputChannels();
+    }
+    return 0;
+}
+
+//------------------------------------------------------------
+int XXofSoundStream::getNumOutputChannels() const{
+    if( soundStream ){
+        return soundStream->getNumOutputChannels();
+    }
+    return 0;
+}
+
+//------------------------------------------------------------
+int XXofSoundStream::getSampleRate() const{
+    if( soundStream ){
+        return soundStream->getSampleRate();
+    }
+    return 0;
+}
+
+//------------------------------------------------------------
+int XXofSoundStream::getBufferSize() const{
+    if( soundStream ){
+        return soundStream->getBufferSize();
+    }
+    return 0;
+}
+
+//------------------------------------------------------------
+ofSoundDevice::ofSoundDevice()
+: name("Unknown")
+, deviceID(0)
+, inputChannels(0)
+, outputChannels(0)
+, isDefaultInput(false)
+, isDefaultOutput(false) {
+    
+}
+
+//------------------------------------------------------------
+vector<ofSoundDevice> XXofSoundStream::getMatchingDevices(const std::string& name, unsigned int inChannels, unsigned int outChannels) const {
+    vector<ofSoundDevice> devs = getDeviceList();
+    vector<ofSoundDevice> hits;
+    
+    for(size_t i = 0; i < devs.size(); i++) {
+        bool nameMatch = devs[i].name.find(name) != string::npos;
+        bool inMatch = (inChannels == UINT_MAX) || (devs[i].inputChannels == inChannels);
+        bool outMatch = (outChannels == UINT_MAX) || (devs[i].outputChannels == outChannels);
+        
+        if(nameMatch && inMatch && outMatch) {
+            hits.push_back(devs[i]);
+        }
+    }
+    
+    return hits;
+}
+
+//------------------------------------------------------------
+std::ostream& operator << (std::ostream& os, const ofSoundDevice& dev) {
+    os << "[" << dev.deviceID << "] " << dev.name;
+    os << " [in:" << dev.inputChannels << " out:" << dev.outputChannels << "]";
+    if(dev.isDefaultInput) os << " (default in)";
+    if(dev.isDefaultOutput) os << " (default out)";
+    return os;
+}
+
+//------------------------------------------------------------
+std::ostream& operator << (std::ostream& os, const std::vector<ofSoundDevice>& devs) {
+    for(std::size_t i = 0; i < devs.size(); i++) {
+        os << devs[i] << std::endl;
+    }
+    return os;
+}
+
+
+//***************** END OF STUFF FOR AUDIO *********************
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -18,12 +317,12 @@ void ofApp::setup(){
     
     /* This is stuff you always need.*/
     
-    sampleRate 			= 44100; /* Sampling Rate */
-    initialBufferSize	= 512;	/* Buffer Size. you have to fill this buffer with sound*/
-    lAudioOut			= new float[initialBufferSize];/* outputs */
-    rAudioOut			= new float[initialBufferSize];
-    lAudioIn			= new float[initialBufferSize];/* inputs */
-    rAudioIn			= new float[initialBufferSize];
+    sampleRate          = 44100; /* Sampling Rate */
+    initialBufferSize   = 512;  /* Buffer Size. you have to fill this buffer with sound*/
+    lAudioOut           = new float[initialBufferSize];/* outputs */
+    rAudioOut           = new float[initialBufferSize];
+    lAudioIn            = new float[initialBufferSize];/* inputs */
+    rAudioIn            = new float[initialBufferSize];
     
     
     /* This is a nice safe piece of code */
@@ -35,214 +334,38 @@ void ofApp::setup(){
     
     /* Now you can put anything you would normally put in maximilian's 'setup' method in here. */
     
-    //	samp.load(ofToDataPath("sinetest_stepping2.wav"));
-    //		samp.load(ofToDataPath("whitenoise2.wav"));
-    //	samp.load(ofToDataPath("additive22.wav"));
+    //  samp.load(ofToDataPath("sinetest_stepping2.wav"));
+    //      samp.load(ofToDataPath("whitenoise2.wav"));
+    //  samp.load(ofToDataPath("additive22.wav"));
     //samp.load(ofToDataPath("pinknoise2.wav"));
     //samp.load(ofToDataPath("filtersweep2.wav"));
     //samp.getLength();
     
     
-    fftSize = 1024;
-    mfft.setup(fftSize, 512, 256);
-    ifft.setup(fftSize, 512, 256);
-    
-    
-    nAverages = 12;
-    oct.setup(sampleRate, fftSize/2, nAverages);
-    
-    mfccs = (double*) malloc(sizeof(double) * 13);
-    mfcc.setup(512, 42, 13, 20, 20000, sampleRate);
+//    fftSize = 1024;
+//    mfft.setup(fftSize, 512, 256);
+//    ifft.setup(fftSize, 512, 256);
+//    
+//    
+//    nAverages = 12;
+//    oct.setup(sampleRate, fftSize/2, nAverages);
+//    
+//    mfccs = (double*) malloc(sizeof(double) * 13);
+//    mfcc.setup(512, 42, 13, 20, 20000, sampleRate);
     
     ofxMaxiSettings::setup(sampleRate, 2, initialBufferSize);
-    ofSoundStreamSetup(2,2, this, sampleRate, initialBufferSize, 4);/* Call this last ! */
-    
-    
-    //GUI STUFF
-    gui.setup(); // most of the time you don't need a name
-    
-    /* mfccToggle.setBackgroundColor(ofColor(191,72,250));
-     fftToggle.setBackgroundColor(ofColor(191,72,250));
-     chromagramToggle.setBackgroundColor(ofColor(191,72,250));
-     peakFrequencyToggle.setBackgroundColor(ofColor(191,72,250));
-     centroidToggle.setBackgroundColor(ofColor(191,72,250));
-     rmsToggle.setBackgroundColor(ofColor(191,72,250)); */
-    
-    
-    gui.add(fftToggle.setup("FFT bin magnitudes (pitch/timbre/volume) (512)", true));
-    gui.add(mfccToggle.setup("MFCCs (timbre/vocal) (13)", true));
-    gui.add(chromagramToggle.setup("Octave analyser (pitch) (12)", true));
-    gui.add(peakFrequencyToggle.setup("Peak frequency (pitch) (1)", true));
-    gui.add(centroidToggle.setup("Spectral centroid (timbre) (1)", true));
-    gui.add(rmsToggle.setup("RMS (volume) (1)", true));
-    
-    //gui.setSize(600, 500);
-    
-    bHide = true;
-    
-    myfont.loadFont("Arial.ttf", 10);
-    
-    ofSetVerticalSync(true);
-
+//    ofSoundStreamSetup(2,2, this, sampleRate, initialBufferSize, 4);
+//    void ofSoundStreamSetup(int nOutputChannels, int nInputChannels, ofBaseApp * appPtr, int sampleRate, int bufferSize, int nBuffers)
+//    systemSoundStream.setup(appPtr, nOutputChannels, nInputChannels, sampleRate, bufferSize, nBuffers);
+    systemSoundStream.setup(this, 2, 2, sampleRate, initialBufferSize, 4);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    
-    if (fftToggle) {
-        ofxOscMessage m;
-        m.setAddress("/fft");
-        for (int i = 0; i < fftSize; i++) {
-            m.addFloatArg(mfft.magnitudes[i]);
-            
-        }
-        sender.sendMessage(m);
-    }
-    
-    if (mfccToggle) {
-        ofxOscMessage m;
-        m.setAddress("/mfccs");
-        for (int i = 0; i < 13; i++) {
-            m.addFloatArg(mfccs[i]);
-        }
-        sender.sendMessage(m);
-    }
-    
-    if (chromagramToggle) {
-        ofxOscMessage m;
-        m.setAddress("/octaveBins");
-        for (int i = 0; i < oct.nAverages; i++) {
-            m.addFloatArg(oct.averages[i]);
-        }
-        sender.sendMessage(m);
-    }
-    
-    if (peakFrequencyToggle) {
-        ofxOscMessage m;
-        m.setAddress("/peakFrequency");
-        m.addFloatArg(peakFreq);
-        sender.sendMessage(m);
-    }
-    
-    if (centroidToggle) {
-        ofxOscMessage m;
-        m.setAddress("/centroid");
-        m.addFloatArg(centroid);
-        sender.sendMessage(m);
-    }
-    if (rmsToggle) {
-        ofxOscMessage m;
-        m.setAddress("/rms");
-        m.addFloatArg(RMS);
-        sender.sendMessage(m);
-    }
-    
-    
-
-    
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    
-    float horizWidth = ofGetWidth() * 0.8;
-    float horizOffset = ofGetWidth()/10.;
-    float fftTop = 50;
-    float mfccTop = 220;
-    float chromagramTop = 320;
-    
-    ofSetColor(255, 0, 0,255);
-    
-    //draw fft output
-    float xinc = horizWidth / fftSize * 2.0;
-    for(int i=0; i < fftSize / 2; i++) {
-        //magnitudesDB took out
-        float height = mfft.magnitudes[i] * 5;
-        ofRect(horizOffset + (i*xinc),250 - height,2, height);
-    }
-    
-    //	cout << "\nMFCCS: ";
-    ofSetColor(0, 255, 0,200);
-    xinc = horizWidth / 13;
-    for(int i=0; i < 13; i++) {
-        float height = mfccs[i] * 30;
-        ofRect(horizOffset + (i*xinc),mfccTop - height,40, height);
-        //		cout << mfccs[i] << ",";
-    }
-    
-    
-    
-    
-    //octave analyser
-    ofSetColor(255, 0, 255,200);
-    xinc = horizWidth / oct.nAverages;
-    for(int i=0; i < oct.nAverages; i++) {
-        float height = oct.averages[i] / 20.0 * 30;
-        ofRect(horizOffset + (i*xinc),chromagramTop - height,2, height);
-    }
-    
-    ofSetColor(255, 255, 255,255);
-    
-    char peakString[255]; // an array of chars
-    sprintf(peakString, "Peak Frequency: %.2f", peakFreq);
-    myfont.drawString(peakString, horizOffset, chromagramTop);
-    
-    char centroidString[255]; // an array of chars
-    sprintf(centroidString, "Spectral Centroid: %f", centroid);
-    myfont.drawString(centroidString, horizOffset, chromagramTop + 35);
-    
-    char rmsString[255]; // an array of chars
-    sprintf(rmsString, "RMS: %.2f", RMS);
-    myfont.drawString(rmsString, horizOffset, chromagramTop + 70);
-    
-    
-    
-     ofSetColor(255, 0, 255, 200);
-     //myfont.drawString("Pitch histogram", 50, 650);
-//     xinc = horizWidth / 12.0;
-//     int j = 0;
-//     float pitchHist[12];
-//     for (int i = 0; i < oct.nAverages; i++) {
-//     pitchHist[j] += oct.averages[i];
-//     j++;
-//     j = j % 12;
-//     }
-//     for(int i=0; i < 12; i++) {
-//     float height = pitchHist[i] /40. * 100;
-//     ofRect(100 + (i*xinc),chromagramTop - height,50, height);
-//     }
-    
-    
-//     ofSetColor(255, 0, 255,200);
-//     xinc = horizWidth /12;
-//     for(int i=0; i < 12; i++) {
-//         float height = chromagram[i] / 50.0 * 100;
-//     ofRect(100 + (i*xinc),chromagramTop - height,2, height);
-//     }
-    
-    // chromagram
-    
-    //Mel bands
-    //	cout << "\nMel bands: ";
-     ofSetColor(255, 0, 255,100);
-     xinc = horizWidth / 42.0;
-     for(int i=0; i < 42; i++) {
-     //		cout << mfcc.melBands[i] << ",";
-     float height = mfcc.melBands[i] * 5.0;
-     ofRect(10 + (i*xinc),400 - height,10, height);
-     }
-    //	cout << endl;
-    
-    
-    //	cout << "\n-------" << endl;
-    
-    //	cout << callTime << endl;
-    
-    if( bHide ){
-        gui.draw();
-    }
-
-    
 }
 
 //--------------------------------------------------------------
@@ -253,156 +376,25 @@ void ofApp::exit(){
 
 //--------------------------------------------------------------
 void ofApp::audioOut(float * output, int bufferSize, int nChannels) {
-
-	
-        //	static double tm;
-        
-        
-        
+    
         for (int i = 0; i < bufferSize; i++){
-            //		wave = osc.saw(maxiMap::linexp(mouseY + ofGetWindowPositionY(), 0, ofGetScreenHeight(), 200, 8000));
-            wave = osc.sinebuf(20+mouseX*7);
-            //wave = samp.play(1.);
-            //get fft
-            //wave=lAudioIn[i];
-            if (mfft.process(wave)) {
-                //			int bins   = fftSize / 2.0;
-                //do some manipulation
-                //			int hpCutoff = floor(((mouseX + ofGetWindowPositionX()) / (float) ofGetScreenWidth()) * fftSize / 2.0);
-                //highpass
-                //			memset(mfft.magnitudes, 0, sizeof(float) * hpCutoff);
-                //			memset(mfft.phases, 0, sizeof(float) * hpCutoff);
-                //lowpass
-                //			memset(mfft.magnitudes + hpCutoff, 0, sizeof(float) * (bins - hpCutoff));
-                //			memset(mfft.phases + hpCutoff, 0, sizeof(float) * (bins - hpCutoff));
-                mfft.magsToDB();
-                //			for(int z=0; z < 512; z++) cout << mfft.magnitudesDB[z] << ",";
-                //			cout << "---------\n";
-                oct.calculate(mfft.magnitudesDB);
-                
-                
-                /* for (int j = 0; j < 12; j++) {
-                 chromagram[j] = 0;
-                 }
-                 int j = 0;
-                 for (int i = 0; i < oct.nAverages; i++) {
-                 chromagram[j] += oct.averages[i];
-                 j++;
-                 j = j % 12;
-                 } */
-                
-                float sum = 0;
-                float maxFreq = 0;
-                int maxBin = 0;
-                
-                for (int i = 0; i < fftSize/2; i++) {
-                    sum += mfft.magnitudes[i];
-                    if (mfft.magnitudes[i] > maxFreq) {
-                        maxFreq=mfft.magnitudes[i];
-                        maxBin = i;
-                    }
-                }
-                centroid = sum / (fftSize / 2);
-                peakFreq = (float)maxBin/fftSize * 44100;
-                
-                
-                mfcc.mfcc(mfft.magnitudes, mfccs);
-                //cout << mfft.spectralFlatness() << ", " << mfft.spectralCentroid() << endl;
-            }
-            //inverse fft
-            gettimeofday(&callTS,NULL);
-            //		ifftVal = ifft.process(mfft.magnitudes, mfft.phases);
-            gettimeofday(&callEndTS,NULL);
-            callTime = (float)(callEndTS.tv_usec - callTS.tv_usec) / 1000000.0;
-            callTime += (float)(callEndTS.tv_sec - callTS.tv_sec);
-            //play result
+            wave = osc.sinebuf(440);
             mymix.stereo(wave, outputs, 0.5);
-            //		float mix = ((mouseX + ofGetWindowPositionX()) / (float) ofGetScreenWidth());
-            //		mymix.stereo((wave * mix) + ((1.0-mix) * ifftVal), outputs, 0.5);
-            // lAudioOut[i] = output[i*nChannels    ] = outputs[0]; /* You may end up with lots of outputs. add them here */
-            //rAudioOut[i] = output[i*nChannels + 1] = outputs[1];
             lAudioOut[i] = 0;
             rAudioOut[i] = 0;
             
             output[i*nChannels    ] = wave;
             output[i*nChannels + 1] = wave;
         }
-
-	
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::audioIn(float * input, int bufferSize, int nChannels){
-	
+    
     for (int i = 0; i < bufferSize; i++){
-        
         lAudioIn[i]=input[i*nChannels];
         rAudioIn[i]=input[i*nChannels +1];
-
-        
-//        //		wave = osc.saw(maxiMap::linexp(mouseY + ofGetWindowPositionY(), 0, ofGetScreenHeight(), 200, 8000));
-//        wave = lAudioIn[i];
-//        //wave = samp.play(1.);
-//        //get fft
-//        if (mfft.process(wave)) {
-//            //			int bins   = fftSize / 2.0;
-//            //do some manipulation
-//            //			int hpCutoff = floor(((mouseX + ofGetWindowPositionX()) / (float) ofGetScreenWidth()) * fftSize / 2.0);
-//            //highpass
-//            //			memset(mfft.magnitudes, 0, sizeof(float) * hpCutoff);
-//            //			memset(mfft.phases, 0, sizeof(float) * hpCutoff);
-//            //lowpass
-//            //			memset(mfft.magnitudes + hpCutoff, 0, sizeof(float) * (bins - hpCutoff));
-//            //			memset(mfft.phases + hpCutoff, 0, sizeof(float) * (bins - hpCutoff));
-//            mfft.magsToDB();
-//            //			for(int z=0; z < 512; z++) cout << mfft.magnitudesDB[z] << ",";
-//            //			cout << "---------\n";
-//            oct.calculate(mfft.magnitudesDB);
-//            
-//            
-////             for (int j = 0; j < 12; j++) {
-////             chromagram[j] = 0;
-////             }
-////             int j = 0;
-////             for (int i = 0; i < oct.nAverages; i++) {
-////             chromagram[j] += oct.averages[i];
-////             j++;
-////             j = j % 12;
-////             } 
-//            
-//            float sum = 0;
-//            float maxFreq = 0;
-//            int maxBin = 0;
-//            
-//            for (int i = 0; i < fftSize/2; i++) {
-//                sum += mfft.magnitudes[i];
-//                if (mfft.magnitudes[i] > maxFreq) {
-//                    maxFreq=mfft.magnitudes[i];
-//                    maxBin = i;
-//                }
-//            }
-//            centroid = sum / (fftSize / 2);
-//            peakFreq = (float)maxBin/fftSize * 44100;
-//            
-//            
-//            mfcc.mfcc(mfft.magnitudes, mfccs);
-//            //cout << mfft.spectralFlatness() << ", " << mfft.spectralCentroid() << endl;
-//        }
-//        //inverse fft
-//        gettimeofday(&callTS,NULL);
-//        //		ifftVal = ifft.process(mfft.magnitudes, mfft.phases);
-//        gettimeofday(&callEndTS,NULL);
-//        callTime = (float)(callEndTS.tv_usec - callTS.tv_usec) / 1000000.0;
-//        callTime += (float)(callEndTS.tv_sec - callTS.tv_sec);
-//        //play result
-//        mymix.stereo(wave, outputs, 0.5);
-//        //		float mix = ((mouseX + ofGetWindowPositionX()) / (float) ofGetScreenWidth());
-//        //		mymix.stereo((wave * mix) + ((1.0-mix) * ifftVal), outputs, 0.5);
-//        // lAudioOut[i] = output[i*nChannels    ] = outputs[0]; /* You may end up with lots of outputs. add them here */
-//        //rAudioOut[i] = output[i*nChannels + 1] = outputs[1];
-//        lAudioOut[i] = 0;
-//        rAudioOut[i] = 0;
-        
     }
     
     
