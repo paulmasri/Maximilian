@@ -643,7 +643,11 @@ void ofApp::setup(){
 //    ofSoundStreamSetup(2,2, this, sampleRate, initialBufferSize, 4);
 //    void ofSoundStreamSetup(int nOutputChannels, int nInputChannels, ofBaseApp * appPtr, int sampleRate, int bufferSize, int nBuffers)
 //    systemSoundStream.setup(appPtr, nOutputChannels, nInputChannels, sampleRate, bufferSize, nBuffers);
-    systemSoundStream.setup(this, 2, 2, sampleRate, initialBufferSize, 4);
+//    systemSoundStream.setup(this, 2, 2, sampleRate, initialBufferSize, 4);
+    
+    theSoundStream = new myiosSoundStream();
+    theSoundStream->setup(this, 2, 2, sampleRate, initialBufferSize, 4);
+    
 }
 
 //--------------------------------------------------------------

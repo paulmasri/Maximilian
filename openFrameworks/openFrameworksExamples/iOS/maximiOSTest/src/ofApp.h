@@ -273,7 +273,7 @@ public:
     
     ofxOscSender sender;
 
-
+    myiosSoundStream *theSoundStream;
 };
 
 
