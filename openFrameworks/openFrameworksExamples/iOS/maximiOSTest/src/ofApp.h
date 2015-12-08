@@ -43,30 +43,30 @@
 //    std::vector<unsigned int> sampleRates;
 //};
 
-class myBaseSoundStream{
-public:
-    virtual ~myBaseSoundStream(){}
-    
-    virtual void setDeviceID(int deviceID) = 0;
-    virtual bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers)=0;
-    virtual bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers)=0;
-    virtual void setInput(ofBaseSoundInput * soundInput) = 0;
-    virtual void setOutput(ofBaseSoundOutput * soundOutput) = 0;
-    
-    virtual std::vector<ofSoundDevice> getDeviceList() const = 0;
-    virtual void printDeviceList() const;
-    
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void close() = 0;
-    
-    virtual long unsigned long getTickCount() const = 0;
-    virtual int getNumInputChannels() const = 0;
-    virtual int getNumOutputChannels() const = 0;
-    virtual int getSampleRate() const = 0;
-    virtual int getBufferSize() const = 0;
-    virtual int getDeviceID() const = 0;
-};
+//class myBaseSoundStream{
+//public:
+//    virtual ~myBaseSoundStream(){}
+//    
+//    virtual void setDeviceID(int deviceID) = 0;
+//    virtual bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers)=0;
+//    virtual bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers)=0;
+//    virtual void setInput(ofBaseSoundInput * soundInput) = 0;
+//    virtual void setOutput(ofBaseSoundOutput * soundOutput) = 0;
+//    
+//    virtual std::vector<ofSoundDevice> getDeviceList() const = 0;
+//    virtual void printDeviceList() const;
+//    
+//    virtual void start() = 0;
+//    virtual void stop() = 0;
+//    virtual void close() = 0;
+//    
+//    virtual long unsigned long getTickCount() const = 0;
+//    virtual int getNumInputChannels() const = 0;
+//    virtual int getNumOutputChannels() const = 0;
+//    virtual int getSampleRate() const = 0;
+//    virtual int getBufferSize() const = 0;
+//    virtual int getDeviceID() const = 0;
+//};
 
 
 
@@ -90,7 +90,7 @@ public:
 
 //***** ofxiOSSoundStream.h
 
-class myiosSoundStream : public myBaseSoundStream {
+class myiosSoundStream {
     
 public:
     myiosSoundStream();
@@ -99,6 +99,7 @@ public:
     /// these are not implemented on iOS
     std::vector<ofSoundDevice> getDeviceList() const;
     void setDeviceID(int deviceID);
+    virtual void printDeviceList() const;
     
     void setInput(ofBaseSoundInput * soundInput);
     void setOutput(ofBaseSoundOutput * soundOutput);
@@ -153,8 +154,8 @@ class mySoundStream{
 public:
     mySoundStream();
     
-    void setSoundStream(shared_ptr<myBaseSoundStream> soundStreamPtr);
-    shared_ptr<myBaseSoundStream> getSoundStream();
+    void setSoundStream(myiosSoundStream* soundStreamPtr);
+    myiosSoundStream* getSoundStream();
     
     void printDeviceList() const;
     std::vector<ofSoundDevice> getDeviceList() const;
@@ -184,7 +185,7 @@ public:
     OF_DEPRECATED_MSG("Use printDeviceList instead", std::vector<ofSoundDevice> listDevices() const);
     
 protected:
-    shared_ptr<myBaseSoundStream> soundStream;
+    myiosSoundStream* soundStream;
     
 };
 

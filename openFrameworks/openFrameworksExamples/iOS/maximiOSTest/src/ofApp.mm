@@ -8,9 +8,9 @@
 #include "ofSoundBuffer.h"
 #include "ofLog.h"
 
-void myBaseSoundStream::printDeviceList() const {
-    ofLogNotice("myBaseSoundStream::printDeviceList") << std::endl << getDeviceList();
-}
+//void myBaseSoundStream::printDeviceList() const {
+//    ofLogNotice("myBaseSoundStream::printDeviceList") << std::endl << getDeviceList();
+//}
 
 
 
@@ -335,6 +335,10 @@ bool myiosSoundStream::setMixWithOtherApps(bool bMix){
     return success;
 }
 
+void myiosSoundStream::printDeviceList() const {
+    ofLogNotice("myBaseSoundStream::printDeviceList") << std::endl << getDeviceList();
+}
+
 
 
 //***** ofSoundStream.cpp
@@ -389,17 +393,17 @@ vector<ofSoundDevice> ofSoundStreamListDevices(){
 //------------------------------------------------------------
 mySoundStream::mySoundStream(){
 #ifdef MY_SOUND_STREAM_TYPE
-    setSoundStream( shared_ptr<MY_SOUND_STREAM_TYPE>(new MY_SOUND_STREAM_TYPE) );
+    setSoundStream( new myiosSoundStream() );
 #endif
 }
 
 //------------------------------------------------------------
-void mySoundStream::setSoundStream(shared_ptr<myBaseSoundStream> soundStreamPtr){
+void mySoundStream::setSoundStream(myiosSoundStream* soundStreamPtr){
     soundStream = soundStreamPtr;
 }
 
 //------------------------------------------------------------
-shared_ptr<myBaseSoundStream> mySoundStream::getSoundStream(){
+myiosSoundStream* mySoundStream::getSoundStream(){
     return soundStream;
 }
 
