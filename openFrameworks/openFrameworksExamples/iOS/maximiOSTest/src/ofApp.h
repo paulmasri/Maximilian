@@ -18,6 +18,28 @@
 
 //***************** STUFF FOR AUDIO ****************************
 
+//***** SoundInputStream.h (from ofxiOS)
+
+#import "SoundStream.h"
+
+@interface SoundInputStream : SoundStream {
+    
+}
+
+@end
+
+
+
+//****** SoundOutputStream.h (from ofxiOS)
+
+//#import "SoundStream.h"
+
+@interface SoundOutputStream : SoundStream
+
+@end
+
+
+
 //***** ofBaseSoundStream.h
 
 //class ofBaseSoundInput;
