@@ -98,6 +98,7 @@ public:
     
     /// these are not implemented on iOS
     std::vector<ofSoundDevice> getDeviceList() const;
+    std::vector<ofSoundDevice> getMatchingDevices(const std::string& name, unsigned int inChannels = UINT_MAX, unsigned int outChannels = UINT_MAX) const;
     void setDeviceID(int deviceID);
     virtual void printDeviceList() const;
     
@@ -148,46 +149,46 @@ private:
 
 //For iOS...
 //#include "ofxiOSSoundStream.h"
-#define MY_SOUND_STREAM_TYPE myiosSoundStream
-
-class mySoundStream{
-public:
-    mySoundStream();
-    
-    void setSoundStream(myiosSoundStream* soundStreamPtr);
-    myiosSoundStream* getSoundStream();
-    
-    void printDeviceList() const;
-    std::vector<ofSoundDevice> getDeviceList() const;
-    std::vector<ofSoundDevice> getMatchingDevices(const std::string& name, unsigned int inChannels = UINT_MAX, unsigned int outChannels = UINT_MAX) const;
-    
-    void setDeviceID(int deviceID);
-    void setDevice(const ofSoundDevice& device);
-    
-    bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
-    bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
-    
-    void setInput(ofBaseSoundInput * soundInput);
-    void setInput(ofBaseSoundInput &soundInput);
-    void setOutput(ofBaseSoundOutput * soundOutput);
-    void setOutput(ofBaseSoundOutput &soundOutput);
-    
-    void start();
-    void stop();
-    void close();
-    
-    long unsigned long getTickCount() const;
-    int getNumInputChannels() const;
-    int getNumOutputChannels() const;
-    int getSampleRate() const;
-    int getBufferSize() const;
-    
-    OF_DEPRECATED_MSG("Use printDeviceList instead", std::vector<ofSoundDevice> listDevices() const);
-    
-protected:
-    myiosSoundStream* soundStream;
-    
-};
+//#define MY_SOUND_STREAM_TYPE myiosSoundStream
+//
+//class mySoundStream{
+//public:
+//    mySoundStream();
+//    
+//    void setSoundStream(myiosSoundStream* soundStreamPtr);
+//    myiosSoundStream* getSoundStream();
+//    
+//    void printDeviceList() const;
+//    std::vector<ofSoundDevice> getDeviceList() const;
+//    std::vector<ofSoundDevice> getMatchingDevices(const std::string& name, unsigned int inChannels = UINT_MAX, unsigned int outChannels = UINT_MAX) const;
+//    
+//    void setDeviceID(int deviceID);
+//    void setDevice(const ofSoundDevice& device);
+//    
+//    bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
+//    bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers);
+//    
+//    void setInput(ofBaseSoundInput * soundInput);
+//    void setInput(ofBaseSoundInput &soundInput);
+//    void setOutput(ofBaseSoundOutput * soundOutput);
+//    void setOutput(ofBaseSoundOutput &soundOutput);
+//    
+//    void start();
+//    void stop();
+//    void close();
+//    
+//    long unsigned long getTickCount() const;
+//    int getNumInputChannels() const;
+//    int getNumOutputChannels() const;
+//    int getSampleRate() const;
+//    int getBufferSize() const;
+//    
+//    OF_DEPRECATED_MSG("Use printDeviceList instead", std::vector<ofSoundDevice> listDevices() const);
+//    
+//protected:
+//    myiosSoundStream* soundStream;
+//    
+//};
 
 
 //***************** END OF STUFF FOR AUDIO *********************
