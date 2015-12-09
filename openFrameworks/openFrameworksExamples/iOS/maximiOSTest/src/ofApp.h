@@ -33,7 +33,7 @@ typedef enum {
     SoundStreamTypeInput = 1
 } SoundStreamType;
 
-@protocol SoundStreamDelegate <NSObject>
+@protocol mySoundStreamDelegate <NSObject>
 @optional
 - (void)soundStreamRequested:(id)sender output:(float *)output bufferSize:(NSInteger)bufferSize numOfChannels:(NSInteger)numOfChannels;
 - (void)soundStreamReceived:(id)sender input:(float *)input bufferSize:(NSInteger)bufferSize numOfChannels:(NSInteger)numOfChannels;
@@ -42,8 +42,8 @@ typedef enum {
 - (void)soundStreamError:(id)sender error:(NSString *)error;
 @end
 
-@interface SoundStream : NSObject {
-    id<SoundStreamDelegate> delegate;
+@interface mySoundStream : NSObject {
+    id<mySoundStreamDelegate> delegate;
     SoundStreamType streamType;
     NSInteger numOfChannels;
     NSInteger sampleRate;
@@ -84,7 +84,7 @@ typedef enum {
 
 //#import "SoundStream.h"
 
-@interface SoundInputStream : SoundStream {
+@interface mySoundInputStream : mySoundStream {
     
 }
 
@@ -96,7 +96,7 @@ typedef enum {
 
 //#import "SoundStream.h"
 
-@interface SoundOutputStream : SoundStream
+@interface mySoundOutputStream : mySoundStream
 
 @end
 
@@ -161,7 +161,7 @@ typedef enum {
 //class ofBaseSoundInput;
 //class ofBaseSoundOutput;
 
-@interface myiosSoundStreamDelegate : NSObject <SoundStreamDelegate>
+@interface myiosSoundStreamDelegate : NSObject <mySoundStreamDelegate>
 
 - (id)initWithSoundInputApp:(ofBaseSoundInput *)app;
 - (id)initWithSoundOutputApp:(ofBaseSoundOutput *)app;

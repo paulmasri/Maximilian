@@ -7,12 +7,12 @@
 
 #import <AVFoundation/AVFoundation.h>
 
-@interface SoundStream()<AVAudioSessionDelegate> {
+@interface mySoundStream()<AVAudioSessionDelegate> {
     //
 }
 @end
 
-@implementation SoundStream
+@implementation mySoundStream
 
 @synthesize delegate;
 @synthesize streamType;
@@ -36,7 +36,7 @@
         bInterruptedWhileRunning = NO;
         
 #ifdef __IPHONE_6_0
-        if([SoundStream shouldUseAudioSessionNotifications]) {
+        if([mySoundStream shouldUseAudioSessionNotifications]) {
             [[NSNotificationCenter defaultCenter] addObserver:self
                                                      selector:@selector(handleInterruption:)
                                                          name:AVAudioSessionInterruptionNotification
@@ -58,7 +58,7 @@
     [super dealloc];
     
 #ifdef __IPHONE_6_0
-    if([SoundStream shouldUseAudioSessionNotifications]) {
+    if([mySoundStream shouldUseAudioSessionNotifications]) {
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                         name:AVAudioSessionInterruptionNotification
                                                       object:nil];
@@ -246,11 +246,11 @@
 typedef struct {
     AudioBufferList * bufferList;
     AudioUnit remoteIO;
-    SoundInputStream * stream;
+    mySoundInputStream * stream;
 }
 SoundInputStreamContext;
 
-@interface SoundInputStream() {
+@interface mySoundInputStream() {
     SoundInputStreamContext context;
 }
 @end
@@ -308,7 +308,7 @@ static OSStatus soundInputStreamRenderCallback(void *inRefCon,
 }
 
 //----------------------------------------------------------------
-@implementation SoundInputStream
+@implementation mySoundInputStream
 
 - (id)initWithNumOfChannels:(NSInteger)value0
              withSampleRate:(NSInteger)value1
@@ -500,7 +500,7 @@ static OSStatus soundOutputStreamRenderCallback(void *inRefCon,
                                                 UInt32 inNumberFrames,
                                                 AudioBufferList *ioData) {
     
-    SoundOutputStream * stream = (SoundOutputStream *)inRefCon;
+    mySoundOutputStream * stream = (mySoundOutputStream *)inRefCon;
     AudioBuffer * audioBuffer = &ioData->mBuffers[0];
     
     // clearing the buffer before handing it off to the user
@@ -521,12 +521,12 @@ static OSStatus soundOutputStreamRenderCallback(void *inRefCon,
 }
 
 //----------------------------------------------------------------
-@interface SoundOutputStream() {
+@interface mySoundOutputStream() {
     //
 }
 @end
 
-@implementation SoundOutputStream
+@implementation mySoundOutputStream
 
 - (id)initWithNumOfChannels:(NSInteger)value0
              withSampleRate:(NSInteger)value1
@@ -851,21 +851,21 @@ bool myiosSoundStream::setup(int numOfOutChannels, int numOfInChannels, int samp
     this->numOfBuffers = numOfBuffers;
     
     if(numOfInChannels > 0) {
-        soundInputStream = [[SoundInputStream alloc] initWithNumOfChannels:numOfInChannels
+        soundInputStream = [[mySoundInputStream alloc] initWithNumOfChannels:numOfInChannels
                                                             withSampleRate:sampleRate
                                                             withBufferSize:bufferSize];
         myiosSoundStreamDelegate * delegate = [[myiosSoundStreamDelegate alloc] initWithSoundInputApp:soundInputPtr];
-        ((SoundInputStream *)soundInputStream).delegate = delegate;
-        [(SoundInputStream *)soundInputStream start];
+        ((mySoundInputStream *)soundInputStream).delegate = delegate;
+        [(mySoundInputStream *)soundInputStream start];
     }
     
     if(numOfOutChannels > 0) {
-        soundOutputStream = [[SoundOutputStream alloc] initWithNumOfChannels:numOfOutChannels
+        soundOutputStream = [[mySoundOutputStream alloc] initWithNumOfChannels:numOfOutChannels
                                                               withSampleRate:sampleRate
                                                               withBufferSize:bufferSize];
         myiosSoundStreamDelegate * delegate = [[myiosSoundStreamDelegate alloc] initWithSoundOutputApp:soundOutputPtr];
-        ((SoundInputStream *)soundOutputStream).delegate = delegate;
-        [(SoundInputStream *)soundOutputStream start];
+        ((mySoundInputStream *)soundOutputStream).delegate = delegate;
+        [(mySoundInputStream *)soundOutputStream start];
     }
     
     bool bOk = (soundInputStream != NULL) || (soundOutputStream != NULL);
@@ -883,40 +883,40 @@ bool myiosSoundStream::setup(ofBaseApp * app, int numOfOutChannels, int numOfInC
 //------------------------------------------------------------------------------
 void myiosSoundStream::start(){
     if(soundInputStream != NULL) {
-        [(SoundInputStream *)soundInputStream start];
+        [(mySoundInputStream *)soundInputStream start];
     }
     
     if(soundOutputStream != NULL) {
-        [(SoundOutputStream *)soundOutputStream start];
+        [(mySoundOutputStream *)soundOutputStream start];
     }
 }
 
 //------------------------------------------------------------------------------
 void myiosSoundStream::stop(){
     if(soundInputStream != NULL) {
-        [(SoundInputStream *)soundInputStream stop];
+        [(mySoundInputStream *)soundInputStream stop];
     }
     
     if(soundOutputStream != NULL) {
-        [(SoundOutputStream *)soundOutputStream stop];
+        [(mySoundOutputStream *)soundOutputStream stop];
     }
 }
 
 //------------------------------------------------------------------------------
 void myiosSoundStream::close(){
     if(soundInputStream != NULL) {
-        [((SoundInputStream *)soundInputStream).delegate release];
-        [(SoundInputStream *)soundInputStream setDelegate:nil];
-        [(SoundInputStream *)soundInputStream stop];
-        [(SoundInputStream *)soundInputStream release];
+        [((mySoundInputStream *)soundInputStream).delegate release];
+        [(mySoundInputStream *)soundInputStream setDelegate:nil];
+        [(mySoundInputStream *)soundInputStream stop];
+        [(mySoundInputStream *)soundInputStream release];
         soundInputStream = NULL;
     }
     
     if(soundOutputStream != NULL) {
-        [((SoundOutputStream *)soundInputStream).delegate release];
-        [(SoundOutputStream *)soundInputStream setDelegate:nil];
-        [(SoundOutputStream *)soundOutputStream stop];
-        [(SoundOutputStream *)soundOutputStream release];
+        [((mySoundOutputStream *)soundInputStream).delegate release];
+        [(mySoundOutputStream *)soundInputStream setDelegate:nil];
+        [(mySoundOutputStream *)soundOutputStream stop];
+        [(mySoundOutputStream *)soundOutputStream release];
         soundOutputStream = NULL;
     }
     
